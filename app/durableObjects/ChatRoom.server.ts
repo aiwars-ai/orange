@@ -387,21 +387,31 @@ export class ChatRoom extends Server<Env> {
 					await this.ctx.storage.put(`heartbeat-${connection.id}`, Date.now())
 					break
 				}
-				case 'disableAi': {
-					await this.ctx.storage
-						.list({
-							prefix: 'ai:',
-						})
-						.then((map) => {
-							for (const key of map.keys()) {
-								this.ctx.storage.delete(key)
-							}
-						})
-					this.broadcastRoomState()
+                                case 'disableAi': {
+                                        await this.ctx.storage
+                                                .list({
+                                                        prefix: 'ai:',
+                                                })
+                                                .then((map) => {
+                                                        for (const key of map.keys()) {
+                                                                this.ctx.storage.delete(key)
+                                                        }
+                                                })
+                                        this.broadcastRoomState()
 
-					break
-				}
-				case 'enableAi': {
+                                        break
+                                }
+                                case 'disableTranscription': {
+                                        await this.ctx.storage
+                                                .list({ prefix: 'transcription:' })
+                                                .then((map) => {
+                                                        for (const key of map.keys()) {
+                                                                this.ctx.storage.delete(key)
+                                                        }
+                                                })
+                                        break
+                                }
+                                case 'enableAi': {
 					await this.ctx.storage.put('ai:connectionPending', true)
 					await this.ctx.storage.delete('ai:error')
 					this.broadcastRoomState()
@@ -472,21 +482,71 @@ export class ChatRoom extends Server<Env> {
 						)
 						await this.ctx.storage.put('ai:enabled', true)
 						await this.ctx.storage.put('ai:connectionPending', false)
-						this.broadcastRoomState()
+                                                this.broadcastRoomState()
 
-						break
-					} catch (error) {
+                                                break
+                                        } catch (error) {
 						console.error(error)
 						await this.ctx.storage.put('ai:connectionPending', false)
 						await this.ctx.storage.put(
 							'ai:error',
 							'Error establishing connection with AI'
 						)
-						this.broadcastRoomState()
-						break
-					}
-				}
-				case 'requestAiControl': {
+                                                this.broadcastRoomState()
+                                                break
+                                        }
+                                }
+                                case 'enableTranscription': {
+                                        await this.ctx.storage.put('transcription:connectionPending', true)
+                                        try {
+                                                const meetingId = await this.getMeetingId()
+                                                invariant(this.env.TRANSCRIPTION_ENDPOINT)
+                                                invariant(this.env.TRANSCRIPTION_TOKEN)
+
+                                                const transcriptionSession = await CallsNewSession(
+                                                        this.env.CALLS_APP_ID,
+                                                        this.env.CALLS_APP_SECRET,
+                                                        this.env.API_EXTRA_PARAMS,
+                                                        meetingId,
+                                                        true
+                                                )
+
+                                                const { track } = data
+
+                                                const tracksResponse = await transcriptionSession.NewTracks({
+                                                        tracks: [
+                                                                {
+                                                                        location: 'remote',
+                                                                        sessionId: track.sessionId,
+                                                                        trackName: track.trackName,
+                                                                },
+                                                        ],
+                                                })
+
+                                                checkNewTracksResponse(tracksResponse, true)
+
+                                                const resp = await fetch(this.env.TRANSCRIPTION_ENDPOINT, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                                Authorization: `Bearer ${this.env.TRANSCRIPTION_TOKEN}`,
+                                                                'Content-Type': 'application/sdp',
+                                                        },
+                                                        body: tracksResponse.sessionDescription?.sdp,
+                                                })
+
+                                                const answer = { type: 'answer', sdp: await resp.text() } as SessionDescription
+                                                await transcriptionSession.Renegotiate(answer)
+
+                                                await this.ctx.storage.put('transcription:sessionId', transcriptionSession.sessionId)
+                                                await this.ctx.storage.put('transcription:trackName', tracksResponse.tracks[0].trackName)
+
+                                                this.readTranscription(transcriptionSession.sessionId).catch((err) => console.error(err))
+                                        } finally {
+                                                await this.ctx.storage.delete('transcription:connectionPending')
+                                        }
+                                        break
+                                }
+                                case 'requestAiControl': {
 					const userControllingPending = await this.ctx.storage.get<string>(
 						'ai:userControlling:pending'
 					)
@@ -566,9 +626,9 @@ export class ChatRoom extends Server<Env> {
 				error: error.stack,
 			} satisfies ServerMessage)
 		}
-	}
+        }
 
-	onError(connection: Connection, error: unknown): void | Promise<void> {
+        onError(connection: Connection, error: unknown): void | Promise<void> {
 		log({
 			eventName: 'onErrorHandler',
 			error,
@@ -604,12 +664,33 @@ export class ChatRoom extends Server<Env> {
 		await this.ctx.storage.deleteAll()
 	}
 
-	userLeftNotification(id: string) {
-		this.broadcastMessage({
-			type: 'userLeftNotification',
-			id,
-		})
-	}
+        userLeftNotification(id: string) {
+                this.broadcastMessage({
+                        type: 'userLeftNotification',
+                        id,
+                })
+        }
+
+        async readTranscription(sessionId: string) {
+                if (!this.env.TRANSCRIPTION_ENDPOINT) return
+                const resp = await fetch(
+                        `${this.env.TRANSCRIPTION_ENDPOINT}/sessions/${sessionId}/transcript`,
+                        {
+                                headers: {
+                                        Authorization: `Bearer ${this.env.TRANSCRIPTION_TOKEN}`,
+                                },
+                        }
+                )
+                const reader = resp.body?.getReader()
+                const decoder = new TextDecoder()
+                if (!reader) return
+                while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+                        const text = decoder.decode(value)
+                        this.broadcastMessage({ type: 'transcriptionChunk', text })
+                }
+        }
 
 	async cleanupOldConnections() {
 		const meetingId = await this.getMeetingId()

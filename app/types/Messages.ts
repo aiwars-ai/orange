@@ -54,10 +54,14 @@ export type ServerMessage =
 			type: 'e2eeMlsMessage'
 			payload: string
 	  }
-	| {
-			type: 'userLeftNotification'
-			id: string
-	  }
+        | {
+                        type: 'userLeftNotification'
+                        id: string
+          }
+       | {
+                        type: 'transcriptionChunk'
+                        text: string
+          }
 
 export type ClientMessage =
 	| {
@@ -94,14 +98,21 @@ export type ClientMessage =
 			type: 'requestAiControl'
 			track: TrackObject
 	  }
-	| {
-			type: 'relenquishAiControl'
-	  }
-	| {
-			type: 'callsApiHistoryEntry'
-			entry: ApiHistoryEntry
-			sessionId?: string
-	  }
+        | {
+                        type: 'relenquishAiControl'
+          }
+       | {
+                        type: 'enableTranscription'
+                        track: TrackObject
+          }
+       | {
+                        type: 'disableTranscription'
+          }
+        | {
+                        type: 'callsApiHistoryEntry'
+                        entry: ApiHistoryEntry
+                        sessionId?: string
+          }
 	| {
 			type: 'e2eeMlsMessage'
 			payload: string
