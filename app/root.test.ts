@@ -1,10 +1,11 @@
 import { Crypto } from '@peculiar/webcrypto'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import { loader } from './root'
 import { commitSession, getSession } from './session'
 import { ACCESS_AUTHENTICATED_USER_EMAIL_HEADER } from './utils/constants'
 
-vi.stubGlobal('crypto', new Crypto())
+globalThis.crypto = new Crypto()
 
 const CF_AppSession = 'oaiwjefoaijwefoij'
 
@@ -55,14 +56,15 @@ describe('root loader', () => {
 		} catch (e) {
 			if (!(e instanceof Response)) throw e
 			var response = e
-			expect(response.status).toBe(302)
-			expect(response.headers.get('Location')).toBe(url.toString())
-			expect(response.headers.get('Set-Cookie')).toBe(
-				[
-					'CF_Authorization=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;',
-					'CF_AppSession=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;',
-				].join(', ')
-			)
+                        assert.strictEqual(response.status, 302)
+                        assert.strictEqual(response.headers.get('Location'), url.toString())
+                        assert.strictEqual(
+                                response.headers.get('Set-Cookie'),
+                                [
+                                        'CF_Authorization=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;',
+                                        'CF_AppSession=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;',
+                                ].join(', ')
+                        )
 		}
 	})
 
@@ -93,7 +95,7 @@ describe('root loader', () => {
 			params: {},
 		})
 
-		expect(response?.status).not.equals(302)
+                assert.notStrictEqual(response?.status, 302)
 	})
 
 	it('should return null if CF_Authorization Cookie will expire in 25 hours', async () => {
@@ -122,7 +124,7 @@ describe('root loader', () => {
 			params: {},
 		})
 
-		expect(response?.status).not.equals(302)
+                assert.notStrictEqual(response?.status, 302)
 	})
 
 	it('should redirect to /set-username if CF_Authorization Cookie is missing', async () => {
@@ -134,12 +136,12 @@ describe('root loader', () => {
 				context: { env: {} } as any,
 				params: {},
 			})
-			expect(response.status).not.equals(302)
+                        assert.notStrictEqual(response.status, 302)
 		} catch (r) {
 			if (!(r instanceof Response)) throw r
 			redirect = r
 		}
-		expect(redirect?.status).toBe(302)
+                assert.strictEqual(redirect?.status, 302)
 	})
 
 	it('should NOT redirect to /set-username if CF_Authorization Cookie is missing but username is set', async () => {
@@ -159,11 +161,11 @@ describe('root loader', () => {
 				context: { env: {} } as any,
 				params: {},
 			})
-			expect(response.status).not.equals(302)
+                        assert.notStrictEqual(response.status, 302)
 		} catch (r) {
 			if (!(r instanceof Response)) throw r
 			redirect = r
 		}
-		expect(redirect?.status).not.equals(302)
+                assert.notStrictEqual(redirect?.status, 302)
 	})
 })

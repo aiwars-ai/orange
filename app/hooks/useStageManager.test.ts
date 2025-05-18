@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import { resolveRoster } from './useStageManager'
 
 const a = { id: 'a' }
@@ -10,34 +11,34 @@ describe('resolveRoster', () => {
 	it('should return the stable list in the same order even if roster is out of order', () => {
 		const stableList = [a, b, c, d]
 		const result = resolveRoster(stableList, [b, c, a, d])
-		expect(result).toEqual(stableList)
+                assert.deepStrictEqual(result, stableList)
 	})
 
 	it('should replace items in the stable list with items in the roster not present in the stable list', () => {
 		const stableList = [a, b, c]
 		const result = resolveRoster(stableList, [c, a, d])
-		expect(result).toEqual([a, d, c])
+                assert.deepStrictEqual(result, [a, d, c])
 	})
 
 	it(`should append items in the roster that aren't in the stable list`, () => {
 		const stableList = [a, c]
 		const roster = [a, b, c, d]
 		const result = resolveRoster(stableList, roster)
-		expect(result).toEqual([a, c, b, d])
+                assert.deepStrictEqual(result, [a, c, b, d])
 	})
 
 	it(`should drop items in the stable list that aren't in the roster`, () => {
 		const stableList = [a, b, c, d]
 		const roster = [a, b, c]
 		const result = resolveRoster(stableList, roster)
-		expect(result).toEqual(roster)
+                assert.deepStrictEqual(result, roster)
 	})
 
 	it(`should populate a list if the current roster is empty`, () => {
 		const stableList = [] as { id: string }[]
 		const roster = [a, b, c]
 		const result = resolveRoster(stableList, roster)
-		expect(result).toEqual(roster)
+                assert.deepStrictEqual(result, roster)
 	})
 
 	it(`should populate the list with items from the new roster array`, () => {
@@ -47,6 +48,6 @@ describe('resolveRoster', () => {
 			stableList,
 			roster
 		)
-		expect(result[2].foo).toBeTruthy()
+                assert.ok(result[2].foo)
 	})
 })

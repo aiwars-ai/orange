@@ -1,5 +1,6 @@
 /* eslint-disable no-loop-func */
-import { expect, test } from 'vitest'
+import test from 'node:test'
+import assert from 'node:assert/strict'
 import { BulkRequestDispatcher, FIFOScheduler } from './Peer.utils'
 
 test('schedule', async () => {
@@ -15,7 +16,7 @@ test('schedule', async () => {
 	await scheduler.schedule(async () => {
 		list.push(3)
 	})
-	expect(list).toStrictEqual([1, 2, 3])
+        assert.deepStrictEqual(list, [1, 2, 3])
 })
 
 test('taskError', async () => {
@@ -32,9 +33,9 @@ test('taskError', async () => {
 	try {
 		await p1
 	} catch (error: any) {
-		expect(error.message).eq(err1)
+                assert.strictEqual(error.message, err1)
 	}
-	expect(await p2).eq(ok)
+        assert.strictEqual(await p2, ok)
 })
 
 test('bulkRequest', async () => {
@@ -44,14 +45,14 @@ test('bulkRequest', async () => {
 	let requestSent = false
 	for (let i = 0; i < 4; i++) {
 		dispatcher.doBulkRequest(i, async (bulkCopy: number[]) => {
-			expect(bulkCopy).toStrictEqual([0, 1, 2, 3])
+                        assert.deepStrictEqual(bulkCopy, [0, 1, 2, 3])
 			requestSent = true
 		})
 	}
-	expect(requestSent).eq(false)
+        assert.strictEqual(requestSent, false)
 	// just waits for a macrotask after the bulk request
 	await new Promise((r) => setTimeout(r, 100))
-	expect(requestSent).eq(true)
+        assert.strictEqual(requestSent, true)
 })
 
 test('bulkRequestWithLimit', async () => {
@@ -61,20 +62,20 @@ test('bulkRequestWithLimit', async () => {
 	let requests = 0
 	for (let i = 0; i < 2; i++) {
 		dispatcher.doBulkRequest(i, async (bulkCopy: number[]) => {
-			expect(bulkCopy).toStrictEqual([0, 1])
+                        assert.deepStrictEqual(bulkCopy, [0, 1])
 			requests++
 		})
 	}
 	for (let i = 2; i < 4; i++) {
 		dispatcher.doBulkRequest(i, async (bulkCopy: number[]) => {
-			expect(bulkCopy).toStrictEqual([2, 3])
+                        assert.deepStrictEqual(bulkCopy, [2, 3])
 			requests++
 		})
 	}
-	expect(requests).eq(0)
+        assert.strictEqual(requests, 0)
 	// just waits for a macrotask after the bulk request
 	await new Promise((r) => setTimeout(r, 100))
-	expect(requests).eq(2)
+        assert.strictEqual(requests, 2)
 })
 
 test('bulkRequestBatchCopy', async () => {
@@ -88,19 +89,19 @@ test('bulkRequestBatchCopy', async () => {
 			// third enqueued macrotask: we delay the request execution to run first
 			// doBulkRequest(42, ..)
 			setTimeout(() => {
-				expect(bulkCopy).toStrictEqual([0, 1])
+                                assert.deepStrictEqual(bulkCopy, [0, 1])
 				requestSent = true
 			}, 0)
 		})
 	}
-	expect(requestSent).eq(false)
+        assert.strictEqual(requestSent, false)
 	// second enqueued macrotask
 	setTimeout(() => {
-		expect(requestSent).eq(false)
+                assert.strictEqual(requestSent, false)
 		// this is the ultimate test: bulkCopy of the first request shoudn't include 42
 		dispatcher.doBulkRequest(42, async (_bulkCopy: number[]) => {})
 	}, 0)
 	// wait for the completion
 	await new Promise((r) => setTimeout(r, 100))
-	expect(requestSent).eq(true)
+        assert.strictEqual(requestSent, true)
 })
