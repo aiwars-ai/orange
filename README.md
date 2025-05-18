@@ -21,6 +21,7 @@ Put these variables into `.dev.vars`
 ```
 CALLS_APP_ID=<APP_ID_GOES_HERE>
 CALLS_APP_SECRET=<SECRET_GOES_HERE>
+SESSION_SECRET=<SECRET_GOES_HERE>
 ```
 
 ### Optional variables
@@ -54,16 +55,18 @@ wrangler login
 
 2. Update `CALLS_APP_ID` in `wrangler.toml` to use your own Calls App ID
 
-3. You will also need to set the token as a secret by running:
+3. You will also need to set the tokens as secrets by running:
 
 ```sh
 wrangler secret put CALLS_APP_SECRET
+wrangler secret put SESSION_SECRET
 ```
 
-or to programmatically set the secret, run:
+or to programmatically set the secrets, run:
 
 ```sh
 echo REPLACE_WITH_YOUR_SECRET | wrangler secret put CALLS_APP_SECRET
+echo REPLACE_WITH_YOUR_SESSION_SECRET | wrangler secret put SESSION_SECRET
 ```
 
 4. Optionally, you can also use [Cloudflare's TURN Service](https://developers.cloudflare.com/calls/turn/) by setting the `TURN_SERVICE_ID` variable in `wrangler.toml` and `TURN_SERVICE_TOKEN` secret using `wrangler secret put TURN_SERVICE_TOKEN`
