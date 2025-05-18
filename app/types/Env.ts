@@ -20,6 +20,8 @@ export type Env = {
 	DB?: D1Database
 	OPENAI_API_TOKEN?: string
 	OPENAI_MODEL_ENDPOINT?: string
-	OPENAI_MODEL_ID?: string
-	DASHBOARD_WORKER_URL?: string
+        OPENAI_MODEL_ID?: string
+        DASHBOARD_WORKER_URL?: string
+        TRANSCRIPTION_ENDPOINT?: string
+        TRANSCRIPTION_TOKEN?: string
 }

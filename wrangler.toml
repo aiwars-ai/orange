@@ -9,6 +9,8 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 CALLS_APP_ID = "YOUR_CALLS_SFU_APP_ID_HERE"
+TRANSCRIPTION_ENDPOINT = ""
+TRANSCRIPTION_TOKEN = ""
 
 # Optional vars
 # OPENAI_MODEL_ENDPOINT = ""

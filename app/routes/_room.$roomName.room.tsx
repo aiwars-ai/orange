@@ -14,6 +14,7 @@ import { CameraButton } from '~/components/CameraButton'
 import { CopyButton } from '~/components/CopyButton'
 import { HighPacketLossWarningsToast } from '~/components/HighPacketLossWarningsToast'
 import { IceDisconnectedToast } from '~/components/IceDisconnectedToast'
+import { TranscriptPanel } from '~/components/TranscriptPanel'
 import { LeaveRoomButton } from '~/components/LeaveRoomButton'
 import { MicButton } from '~/components/MicButton'
 import { OverflowMenu } from '~/components/OverflowMenu'
@@ -234,8 +235,9 @@ function JoinedRoom({ bugReportsEnabled }: { bugReportsEnabled: boolean }) {
 					)}
 				</div>
 			</div>
-			<HighPacketLossWarningsToast />
-			<IceDisconnectedToast />
-		</PullAudioTracks>
-	)
+                        <HighPacketLossWarningsToast />
+                        <IceDisconnectedToast />
+                        <TranscriptPanel />
+                </PullAudioTracks>
+        )
 }

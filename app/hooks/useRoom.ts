@@ -11,10 +11,11 @@ export default function useRoom({
 	roomName: string
 	userMedia: UserMedia
 }) {
-	const [roomState, setRoomState] = useState<RoomState>({
-		users: [],
-		ai: { enabled: false },
-	})
+        const [roomState, setRoomState] = useState<RoomState>({
+                users: [],
+                ai: { enabled: false },
+        })
+        const [transcripts, setTranscripts] = useState<string[]>([])
 
 	const userLeftFunctionRef = useRef(() => {})
 
@@ -39,19 +40,22 @@ export default function useRoom({
 					break
 				case 'directMessage':
 					break
-				case 'muteMic':
-					userMedia.turnMicOff()
-					break
-				case 'partyserver-pong':
-				case 'e2eeMlsMessage':
-				case 'userLeftNotification':
-					// do nothing
-					break
-				default:
-					message satisfies never
-					break
-			}
-		},
+                                case 'muteMic':
+                                        userMedia.turnMicOff()
+                                        break
+                                case 'partyserver-pong':
+                                case 'e2eeMlsMessage':
+                                case 'userLeftNotification':
+                                        // do nothing
+                                        break
+                                case 'transcriptionChunk':
+                                        setTranscripts((t) => [...t, message.text])
+                                        break
+                                default:
+                                        message satisfies never
+                                        break
+                        }
+                },
 	})
 
 	userLeftFunctionRef.current = () =>
@@ -88,5 +92,5 @@ export default function useRoom({
 		[roomState.users, websocket.id]
 	)
 
-	return { identity, otherUsers, websocket, roomState }
+        return { identity, otherUsers, websocket, roomState, transcripts }
 }
