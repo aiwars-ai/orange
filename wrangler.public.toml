@@ -35,6 +35,7 @@ deleted_classes = ["RateLimiter"]
 
 # The necessary secrets are:
 # - CALLS_APP_SECRET
+# - SESSION_SECRET
 # Run `echo <VALUE> | wrangler secret put <NAME>` for each of these
 
 
