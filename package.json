@@ -14,7 +14,7 @@
 		"prettier": "prettier -w .",
 		"typecheck": "tsc --noEmit --skipLibCheck",
 		"typecheck:watch": "npm run typecheck -- --watch",
-		"test": "vitest",
+                "test": "tsc -p tsconfig.test.json && node --test dist-tests",
 		"test:ci": "vitest --watch false",
 		"test:e2e": "playwright test --headed",
 		"check": "npm run lint && npm run typecheck && npm run test:ci",
