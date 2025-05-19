@@ -1,11 +1,11 @@
-import { Crypto } from '@peculiar/webcrypto'
+import { webcrypto } from 'node:crypto'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { loader } from './root'
 import { commitSession, getSession } from './session'
 import { ACCESS_AUTHENTICATED_USER_EMAIL_HEADER } from './utils/constants'
 
-globalThis.crypto = new Crypto()
+globalThis.crypto = webcrypto
 
 const CF_AppSession = 'oaiwjefoaijwefoij'
 
