@@ -45,6 +45,17 @@ npm run dev
 
 Open up [http://127.0.0.1:8787](http://127.0.0.1:8787) and you should be ready to go!
 
+## Testing
+
+Compile the TypeScript tests and run them with Node's built-in test runner:
+
+```sh
+npm test
+```
+
+This command builds the tests into `dist-tests` using `tsc -p tsconfig.test.json`
+and then executes them via `node --test`.
+
 ## Deployment
 
 1. Make sure you've installed `wrangler` and are logged in by running:
